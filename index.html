@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.6.5/angular.min.js"></script>
+    <script src="/dist/angular-wm-websocket.min.js"></script>
+
+
+    <style>
+    *{
+        box-sizing: border-box;
+    }
+    body{
+        margin: 0;
+        padding: 0;
+        font-family: Arial;
+
+    }
+    button{
+        border: none;
+        background-color: #add555;
+        padding: 10px ;
+        color: #fff;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    textarea{
+        border: 1px solid #ccc;
+        width: 100%;
+    }
+
+    .container{
+        width: 1120px;
+        margin: 0 auto;
+        max-width: 100%;
+        padding: 10px;
+    }
+
+    ul {
+        padding: 0;
+        margin: 0;
+        list-style: none;
+    }
+
+    ul > li{
+        padding: 10px;
+        box-shadow: 0 1px 1px #ccc;
+        margin-bottom: 5px;
+    }
+    </style>
+
+    <script>
+        angular.module('app', ['wm.websocket'])
+
+        .controller('ChatController', function ($scope, WmSocket) {
+
+            var ws = new WmSocket('ws://echo.websocket.org/');
+
+            $scope.messages = [];
+
+            var onChannelMessage = function (message) {
+                console.log(message);
+                $scope.messages.push(message);
+            };
+
+            $scope.toggle = function () {
+
+                $scope.toggleSubscription ? ws.$off('chat') : ws.$on('chat', onChannelMessage);
+
+                $scope.toggleSubscription = ! $scope.toggleSubscription;
+
+            };
+
+            $scope.send = function () {
+
+                ws.$emit('chat', $scope.message).then(function (){
+                    $scope.message = {};
+                })
+            };
+        })
+
+    </script>
+</head>
+<body ng-app="app">
+    
+    <div ng-controller='ChatController' class="container">
+
+        <ul class='messages' style="height: 100px;overflow:auto">
+            <li ng-repeat='m in messages'>
+                <div ng-bind="::m.text"></div>
+            </li>
+        </ul>
+
+        <div>
+            <form ng-submit='send()'>
+                <textarea ng-model="message.text"></textarea>
+                <button type="submit">Enviar</button>
+
+                <button type="button" ng-click="toggle()">
+                    {{ toggleSubscription ? 'OFF' : 'ON' }}
+                </button>
+            </form>
+        </div>
+
+    </div>
+</body>
+</html>
